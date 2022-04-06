@@ -14,13 +14,23 @@ public class RoleService {
     @Autowired
     RoleRepository roleRepository;
 
+    /**
+     * Creates a role using the passed role name and passes it to the database in case the role does not already exist
+     * in the database.
+     * @param roleName
+     */
     public void createRole(ERole roleName) {
-        if (findRoleByName(roleName) != null) {
+        if (findRoleByName(roleName) == null) {
             Role role = new Role(null, roleName.name());
             roleRepository.save(role);
         }
     }
 
+    /**
+     * Finds a product by its name.
+     * @param name
+     * @return
+     */
     public Role findRoleByName(ERole name) {
         return roleRepository.findByName(name.name());
     }

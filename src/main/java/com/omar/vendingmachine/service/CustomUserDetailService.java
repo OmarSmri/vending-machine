@@ -3,7 +3,6 @@ package com.omar.vendingmachine.service;
 import com.omar.vendingmachine.constants.UserContants;
 import com.omar.vendingmachine.exceptions.InvalidDepositAmountException;
 import com.omar.vendingmachine.exceptions.InvalidPurchaseException;
-import com.omar.vendingmachine.model.user.ERole;
 import com.omar.vendingmachine.model.user.Role;
 import com.omar.vendingmachine.model.user.User;
 import com.omar.vendingmachine.repository.UserRepository;
@@ -14,10 +13,8 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.math.BigInteger;
 import java.util.*;
 
 @Service
@@ -29,19 +26,46 @@ public class CustomUserDetailService implements UserDetailsService {
     @Autowired
     RoleService roleService;
 
+    /**
+     * Lists all the users in the users collection --> for testing purposes only.
+     * @return
+     */
+    public List<User> listAll() {
+        return userRepository.findAll().collectList().block();
+    }
+
+    /**
+     * Hard deletes all the users in the users collection --> for testing purposes only.
+     */
+    public void deleteAll() {
+        userRepository.deleteAll().block();
+    }
+
+    /**
+     * Finds a user in the data base by the username, returns null in case no user with such username
+     * @param username
+     * @return
+     */
     public User findByUsername(String username) {
         return customUserRepository.findByUsername(username).blockLast();
     }
 
+    /**
+     * Saves user to the database. Performs update in case the user exists and inserts a new user in case the user does not exist.
+     * @param user
+     */
     public void saveUser(User user) {
-        BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder();
-        user.setPassword(bCryptPasswordEncoder.encode(user.getPassword()));
-        Role userRole = roleService.findRoleByName(ERole.SELLER);
-        user.setRoles(new HashSet<>(Arrays.asList(userRole)));
         userRepository.save(user).block();
 
     }
 
+    /**
+     * creates new user using the basic user parameters.
+     * @param username
+     * @param password
+     * @param role
+     * @param deposit
+     */
     public void createUser(String username, String password, Role role, Integer deposit) {
         User user = new User();
         user.setUsername(username);
@@ -51,6 +75,12 @@ public class CustomUserDetailService implements UserDetailsService {
         userRepository.save(user).block();
     }
 
+    /**
+     * Adds the deposit amount to the user with the input username
+     * @param username
+     * @param amount
+     * @throws InvalidDepositAmountException in case the deposit amount is not among the allowed values.
+     */
     public void depoist(String username, int amount) throws InvalidDepositAmountException {
         if (!UserContants.DEPOSIT_AMOUNTS.contains(amount)) {
             throw new InvalidDepositAmountException(String.format("Invalid deposit amount, the deposit amount should be among the values %s", UserContants.DEPOSIT_AMOUNTS));
@@ -60,6 +90,10 @@ public class CustomUserDetailService implements UserDetailsService {
         saveUser(user);
     }
 
+    /**
+     * Resets the deposit of the user with the input username to 0
+     * @param username
+     */
     public void resetDeposit(String username) {
         User user = findByUsername(username);
         user.setDeposit(0);
@@ -115,6 +149,11 @@ public class CustomUserDetailService implements UserDetailsService {
         }
     }
 
+    /**
+     * Returns the authorites granted to a user.
+     * @param userRoles
+     * @return
+     */
     private List<GrantedAuthority> getUserAuthority(Set<Role> userRoles) {
         Set<GrantedAuthority> roles = new HashSet<>();
         userRoles.forEach(role -> {

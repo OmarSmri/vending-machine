@@ -3,9 +3,10 @@ package com.omar.vendingmachine.controller;
 import com.omar.vendingmachine.constants.UserContants;
 import com.omar.vendingmachine.model.user.ERole;
 import com.omar.vendingmachine.model.user.Role;
-import com.omar.vendingmachine.security.JwtUtils;
 import com.omar.vendingmachine.service.CustomUserDetailService;
 import com.omar.vendingmachine.service.RoleService;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -15,13 +16,15 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.session.SessionInformation;
 import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
 
-
-import java.math.BigInteger;
 import java.util.List;
 import java.util.Map;
 
+@Api(value = "AuthController", description = "REST APIs related to user registration and authentication flows")
 @RestController
 public class AuthController {
     @Autowired
@@ -33,10 +36,9 @@ public class AuthController {
     @Autowired
     PasswordEncoder passwordEncoder;
     @Autowired
-    JwtUtils jwtUtils;
-    @Autowired
     SessionRegistry sessionRegistry;
 
+    @ApiOperation(value = "Register a new user, accepts the username, password and role as input", tags = "signup")
     @PostMapping("/user/signup")
     public ResponseEntity<?> registerUser(@RequestBody Map<String, String> signUpDetails) {
         String username = signUpDetails.getOrDefault(UserContants.USERNAME, "");
