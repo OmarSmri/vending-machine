@@ -10,6 +10,7 @@ public class VendingMachineApplication {
 
     public static void main(String[] args) {
         SpringApplication.run(VendingMachineApplication.class, args);
+        System.out.println("This is feature 1");
     }
 
 }
